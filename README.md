@@ -195,6 +195,17 @@ Parameters:
 - Monitor approval requirements
 - Track review progress
 
+### `get_activities`
+
+**Retrieve pull request activities**: Gets the complete activity timeline for a pull request including comments, reviews, commits, and other events.
+
+**Use cases:**
+- Read comment discussions and feedback
+- Review the complete PR timeline
+- Track commits added/removed from PR
+- See approval and review history
+- Understand the full PR lifecycle
+
 ## Usage Examples
 
 ### Listing Projects and Repositories
@@ -227,6 +238,12 @@ get_pull_request --repository "my-repo" --prId 123
 
 # Merge a pull request with squash strategy
 merge_pull_request --repository "my-repo" --prId 123 --strategy "squash" --message "Feature: New functionality (#123)"
+
+# Get pull request activities (comments, reviews, commits, etc.)
+get_activities --repository "my-repo" --prId 123
+
+# Get activities for a specific project
+get_activities --project "MYPROJECT" --repository "my-repo" --prId 123
 ```
 
 ## Dependencies
