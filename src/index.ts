@@ -266,6 +266,19 @@ class BitbucketServer {
             },
             required: ['repository', 'prId']
           }
+        },
+        {
+          name: 'get_activities',
+          description: 'Retrieve all activities for a pull request including comments, reviews, commits, and other timeline events. Use this to get the complete activity history and timeline of the pull request.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Bitbucket project key. If omitted, uses BITBUCKET_DEFAULT_PROJECT environment variable.' },
+              repository: { type: 'string', description: 'Repository slug containing the pull request.' },
+              prId: { type: 'number', description: 'Pull request ID to get activities for.' }
+            },
+            required: ['repository', 'prId']
+          }
         }
       ]
     }));
@@ -373,6 +386,15 @@ class BitbucketServer {
               prId: args.prId as number
             };
             return await this.getReviews(reviewsPrParams);
+          }
+
+          case 'get_activities': {
+            const activitiesPrParams: PullRequestParams = {
+              project: getProject(args.project as string),
+              repository: args.repository as string,
+              prId: args.prId as number
+            };
+            return await this.getActivities(activitiesPrParams);
           }
 
           default:
@@ -635,6 +657,25 @@ class BitbucketServer {
 
     return {
       content: [{ type: 'text', text: JSON.stringify(reviews, null, 2) }]
+    };
+  }
+
+  private async getActivities(params: PullRequestParams) {
+    const { project, repository, prId } = params;
+    
+    if (!project || !repository || !prId) {
+      throw new McpError(
+        ErrorCode.InvalidParams,
+        'Project, repository, and prId are required'
+      );
+    }
+    
+    const response = await this.api.get(
+      `/projects/${project}/repos/${repository}/pull-requests/${prId}/activities`
+    );
+
+    return {
+      content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
     };
   }
 
