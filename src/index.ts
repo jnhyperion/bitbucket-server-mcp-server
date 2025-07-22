@@ -309,7 +309,7 @@ class BitbucketServer {
         },
         {
           name: 'search',
-          description: 'Search for code or files across repositories. Use this to find specific code patterns, file names, or content within projects and repositories. Supports filtering by project, repository, and search type.',
+          description: 'Search for code or files across repositories. Use this to find specific code patterns, file names, or content within projects and repositories. Searches both file contents and filenames. Supports filtering by project, repository, and query optimization.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -319,7 +319,7 @@ class BitbucketServer {
               type: { 
                 type: 'string', 
                 enum: ['code', 'file'],
-                description: 'Type of search: "code" searches within file contents, "file" searches file names. If omitted, searches both.'
+                description: 'Query optimization: "file" wraps query in quotes for exact filename matching, "code" uses default search behavior. Both search file contents and filenames.'
               },
               limit: { type: 'number', description: 'Number of results to return (default: 25, max: 100)' },
               start: { type: 'number', description: 'Start index for pagination (default: 0)' }

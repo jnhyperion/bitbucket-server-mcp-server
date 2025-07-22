@@ -231,7 +231,7 @@ Parameters:
 
 ### `search`
 
-**Advanced code and file search**: Search across repositories using the Bitbucket search API with support for project/repository filtering, file types, and content vs filename search. **Note**: Search only works on the default branch of repositories.
+**Advanced code and file search**: Search across repositories using the Bitbucket search API with support for project/repository filtering and query optimization. Searches both file contents and filenames. **Note**: Search only works on the default branch of repositories.
 
 **Use cases:**
 - Find specific code patterns across projects
@@ -243,7 +243,7 @@ Parameters:
 - `query` (required): Search query string
 - `project`: Bitbucket project key to limit search scope
 - `repository`: Repository slug for repository-specific search
-- `type`: Search type - "code" (file contents) or "file" (filenames)
+- `type`: Query optimization - "file" (wraps query in quotes for exact filename matching) or "code" (default search behavior)
 - `limit`: Number of results to return (default: 25, max: 100)
 - `start`: Start index for pagination (default: 0)
 
