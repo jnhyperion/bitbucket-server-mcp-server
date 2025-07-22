@@ -7,6 +7,9 @@ MCP (Model Context Protocol) server for Bitbucket Server Pull Request management
 
 ## ✨ New Features
 
+- **🔍 Advanced Search**: Search code and files across repositories with project/repository filtering using the `search` tool
+- **📄 File Operations**: Read file contents and browse repository directories with `get_file_content` and `browse_repository`
+- **💬 Comment Management**: Extract and filter PR comments with `get_comments` tool
 - **🔍 Project Discovery**: List all accessible Bitbucket projects with `list_projects`
 - **📁 Repository Browsing**: Explore repositories across projects with `list_repositories`
 - **🔧 Flexible Project Support**: Make the default project optional - specify per command or use `BITBUCKET_DEFAULT_PROJECT`
@@ -206,6 +209,85 @@ Parameters:
 - See approval and review history
 - Understand the full PR lifecycle
 
+Parameters:
+- `project`: Bitbucket project key (optional, uses BITBUCKET_DEFAULT_PROJECT if not provided)
+- `repository` (required): Repository slug
+- `prId` (required): Pull request ID
+
+### `get_comments`
+
+**Extract PR comments only**: Filters pull request activities to return only the comments, making it easier to focus on discussion content without reviews or other activities.
+
+**Use cases:**
+- Read PR discussion threads
+- Extract feedback and questions
+- Focus on comment content without noise
+- Analyze conversation flow
+
+Parameters:
+- `project`: Bitbucket project key (optional, uses BITBUCKET_DEFAULT_PROJECT if not provided)
+- `repository` (required): Repository slug
+- `prId` (required): Pull request ID
+
+### `search`
+
+**Advanced code and file search**: Search across repositories using the Bitbucket search API with support for project/repository filtering, file types, and content vs filename search. **Note**: Search only works on the default branch of repositories.
+
+**Use cases:**
+- Find specific code patterns across projects
+- Locate files by name or content
+- Search within specific projects or repositories
+- Filter by file extensions
+
+Parameters:
+- `query` (required): Search query string
+- `project`: Bitbucket project key to limit search scope
+- `repository`: Repository slug for repository-specific search
+- `type`: Search type - "code" (file contents) or "file" (filenames)
+- `limit`: Number of results to return (default: 25, max: 100)
+- `start`: Start index for pagination (default: 0)
+
+**Query syntax examples:**
+- `"README.md"` - Find exact filename
+- `config ext:yml` - Find config in YAML files  
+- `function project:MYPROJECT` - Search for "function" in specific project
+- `bug fix repo:PROJ/my-repo` - Search in specific repository
+
+### `get_file_content`
+
+**Read file contents with pagination**: Retrieve the content of specific files from repositories with support for large files through pagination.
+
+**Use cases:**
+- Read source code files
+- View configuration files
+- Extract documentation content
+- Inspect specific file versions
+
+Parameters:
+- `project`: Bitbucket project key (optional, uses BITBUCKET_DEFAULT_PROJECT if not provided)
+- `repository` (required): Repository slug
+- `filePath` (required): Path to the file in the repository
+- `branch`: Branch or commit hash (optional, defaults to main/master)
+- `limit`: Maximum lines per request (default: 100, max: 1000)
+- `start`: Starting line number for pagination (default: 0)
+
+### `browse_repository`
+
+**Explore repository structure**: Browse files and directories in repositories to understand project organization and locate specific files.
+
+**Use cases:**
+- Explore repository structure
+- Navigate directory trees
+- Find files and folders
+- Understand project organization
+
+Parameters:
+- `project`: Bitbucket project key (optional, uses BITBUCKET_DEFAULT_PROJECT if not provided)
+- `repository` (required): Repository slug
+- `path`: Directory path to browse (optional, defaults to root)
+- `branch`: Branch or commit hash (optional, defaults to main/master)
+- `limit`: Maximum items to return (default: 50)
+
 ## Usage Examples
 
 ### Listing Projects and Repositories
@@ -224,6 +306,31 @@ list_repositories --project "MYPROJECT"
 list_projects --limit 10 --start 0
 ```
 
+### Search and File Operations
+
+```bash
+# Search for README files across all projects
+search --query "README" --type "file" --limit 10
+
+# Search for specific code patterns in a project
+search --query "function getUserData" --type "code" --project "MYPROJECT"
+
+# Search with file extension filter
+search --query "config ext:yml" --project "MYPROJECT"
+
+# Browse repository structure
+browse_repository --project "MYPROJECT" --repository "my-repo"
+
+# Browse specific directory
+browse_repository --project "MYPROJECT" --repository "my-repo" --path "src/components"
+
+# Read file contents
+get_file_content --project "MYPROJECT" --repository "my-repo" --filePath "package.json" --limit 20
+
+# Read specific lines from a large file
+get_file_content --project "MYPROJECT" --repository "my-repo" --filePath "docs/CHANGELOG.md" --start 100 --limit 50
+```
+
 ### Working with Pull Requests
 
 ```bash
@@ -236,15 +343,16 @@ create_pull_request --project "MYPROJECT" --repository "my-repo" --title "Bugfix
 # Get pull request details
 get_pull_request --repository "my-repo" --prId 123
 
-# Merge a pull request with squash strategy
-merge_pull_request --repository "my-repo" --prId 123 --strategy "squash" --message "Feature: New functionality (#123)"
+# Get only comments from a PR (no reviews/commits)
+get_comments --project "MYPROJECT" --repository "my-repo" --prId 123
 
-# Get pull request activities (comments, reviews, commits, etc.)
+# Get full PR activity timeline
 get_activities --repository "my-repo" --prId 123
 
-# Get activities for a specific project
-get_activities --project "MYPROJECT" --repository "my-repo" --prId 123
+# Merge a pull request with squash strategy
+merge_pull_request --repository "my-repo" --prId 123 --strategy "squash" --message "Feature: New functionality (#123)"
 ```
+
 
 ## Dependencies
 
