@@ -393,6 +393,7 @@ The server requires configuration in the VSCode MCP settings file. Here's a samp
   - `BITBUCKET_TOKEN`: Personal access token
   - `BITBUCKET_USERNAME` and `BITBUCKET_PASSWORD`: Basic authentication credentials
 - `BITBUCKET_DEFAULT_PROJECT` (optional): Default project key to use when not specified in tool calls
+- `BITBUCKET_READ_ONLY` (optional): Set to `true` to enable read-only mode
 
 **Note**: With the new optional project support, you can now:
 
@@ -400,6 +401,35 @@ The server requires configuration in the VSCode MCP settings file. Here's a samp
 - Use `list_projects` to discover available projects
 - Use `list_repositories` to browse repositories across projects
 - Override the default project by specifying the `project` parameter in any tool call
+
+### Read-Only Mode
+
+The server supports a read-only mode for deployments where you want to prevent any modifications to your Bitbucket repositories. When enabled, only safe, non-modifying operations are available.
+
+**To enable read-only mode**: Set the environment variable `BITBUCKET_READ_ONLY=true`
+
+**Available tools in read-only mode:**
+- `list_projects` - Browse and list projects
+- `list_repositories` - Browse and list repositories  
+- `get_pull_request` - View pull request details
+- `get_diff` - View code changes and diffs
+- `get_reviews` - View review history and status
+- `get_activities` - View pull request timeline
+- `get_comments` - View pull request comments
+- `search` - Search code and files across repositories
+- `get_file_content` - Read file contents
+- `browse_repository` - Browse repository structure
+
+**Disabled tools in read-only mode:**
+- `create_pull_request` - Creating new pull requests
+- `merge_pull_request` - Merging pull requests
+- `decline_pull_request` - Declining pull requests  
+- `add_comment` - Adding comments to pull requests
+
+**Behavior:**
+- When `BITBUCKET_READ_ONLY` is not set or set to any value other than `true`, all tools function normally (backward compatible)
+- When `BITBUCKET_READ_ONLY=true`, write operations are filtered out and will return an error if called
+- This is perfect for production deployments, CI/CD integration, or any scenario where you need safe, read-only Bitbucket access
 
 ## Logging
 
