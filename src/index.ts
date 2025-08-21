@@ -31,6 +31,7 @@ interface BitbucketConfig {
   password?: string;
   defaultProject?: string;
   maxLinesPerFile?: number;
+  readOnly?: boolean;
 }
 
 interface RepositoryParams {
@@ -110,7 +111,8 @@ class BitbucketServer {
       defaultProject: process.env.BITBUCKET_DEFAULT_PROJECT,
       maxLinesPerFile: process.env.BITBUCKET_DIFF_MAX_LINES_PER_FILE 
         ? parseInt(process.env.BITBUCKET_DIFF_MAX_LINES_PER_FILE, 10) 
-        : undefined
+        : undefined,
+      readOnly: process.env.BITBUCKET_READ_ONLY === 'true'
     };
 
     if (!this.config.baseUrl) {
@@ -151,6 +153,8 @@ class BitbucketServer {
   }
 
   private setupToolHandlers() {
+    const readOnlyTools = ['list_projects', 'list_repositories', 'get_pull_request', 'get_diff', 'get_reviews', 'get_activities', 'get_comments', 'search', 'get_file_content', 'browse_repository'];
+    
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
         {
@@ -363,13 +367,21 @@ class BitbucketServer {
             required: ['repository']
           }
         }
-      ]
+      ].filter(tool => !this.config.readOnly || readOnlyTools.includes(tool.name))
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
         logger.info(`Called tool: ${request.params.name}`, { arguments: request.params.arguments });
         const args = request.params.arguments ?? {};
+
+        // Check if tool is allowed in read-only mode
+        if (this.config.readOnly && !readOnlyTools.includes(request.params.name)) {
+          throw new McpError(
+            ErrorCode.MethodNotFound,
+            `Tool ${request.params.name} is not available in read-only mode`
+          );
+        }
 
         // Helper function to get project with fallback to default
         const getProject = (providedProject?: string): string => {
