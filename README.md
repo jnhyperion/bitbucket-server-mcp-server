@@ -171,7 +171,7 @@ Parameters:
 
 ### `get_diff`
 
-**Analyze code changes**: Retrieves the code differences showing exactly what was added, removed, or modified in the pull request.
+**Analyze code changes**: Retrieves the code differences showing exactly what was added, removed, or modified in the pull request. Supports per-file truncation to manage large diffs effectively.
 
 **Use cases:**
 - Review specific code changes
@@ -179,6 +179,7 @@ Parameters:
 - Analyze impact before merging
 - Inspect implementation details
 - Code quality assessment
+- Handle large files without overwhelming output
 
 Parameters:
 
@@ -186,6 +187,15 @@ Parameters:
 - `repository` (required): Repository slug
 - `prId` (required): Pull request ID
 - `contextLines`: Context lines around changes (default: 10)
+- `maxLinesPerFile`: Maximum lines to show per file (optional, uses BITBUCKET_DIFF_MAX_LINES_PER_FILE env var if not specified, set to 0 for no limit)
+
+**Large File Handling:**
+When a file exceeds the `maxLinesPerFile` limit, it shows:
+- File headers and metadata (always preserved)
+- First 60% of allowed lines from the beginning
+- Truncation message with file statistics
+- Last 40% of allowed lines from the end
+- Clear indication of how to see the complete diff
 
 ### `get_reviews`
 
@@ -393,6 +403,7 @@ The server requires configuration in the VSCode MCP settings file. Here's a samp
   - `BITBUCKET_TOKEN`: Personal access token
   - `BITBUCKET_USERNAME` and `BITBUCKET_PASSWORD`: Basic authentication credentials
 - `BITBUCKET_DEFAULT_PROJECT` (optional): Default project key to use when not specified in tool calls
+- `BITBUCKET_DIFF_MAX_LINES_PER_FILE` (optional): Default maximum lines to show per file in diffs. Set to prevent large files from overwhelming output. Can be overridden by the `maxLinesPerFile` parameter in `get_diff` calls.
 - `BITBUCKET_READ_ONLY` (optional): Set to `true` to enable read-only mode
 
 **Note**: With the new optional project support, you can now:
