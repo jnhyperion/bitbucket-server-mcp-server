@@ -5,6 +5,9 @@ import { z } from "zod";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import axios, { AxiosInstance } from "axios";
 import winston from "winston";
+import express from "express";
+import cors from "cors";
+import type { Request, Response } from "express";
 
 // Configuration du logger
 const logger = winston.createLogger({
@@ -1321,10 +1324,55 @@ class BitbucketServer {
     };
   }
 
-  async run() {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    logger.info("Bitbucket MCP server running on stdio");
+  async run(mode: "stdio" | "http" = "stdio") {
+    if (mode === "stdio") {
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+      logger.info("Bitbucket MCP server running on stdio");
+    } else if (mode === "http") {
+      const app = express();
+      app.use(cors());
+      app.use(express.json());
+
+      const mcpEndpoint = "/mcp";
+      logger.debug(`MCP endpoint: ${mcpEndpoint}`);
+
+      // Create transport instance
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+      });
+
+      // Connect server to transport
+      await this.server.connect(transport);
+
+      // Handle all MCP requests
+      app.all(mcpEndpoint, (req: Request, res: Response) => {
+        transport.handleRequest(req, res, req.body).catch((err: unknown) => {
+          logger.error("Error in transport.handleRequest", err);
+          if (!res.headersSent) {
+            res.status(500).json({
+              error: "Internal Server Error",
+            });
+          }
+        });
+      });
+
+      // Health check endpoint
+      app.get("/", (_req: Request, res: Response) => {
+        res.send(`Bitbucket MCP Server is running`);
+      });
+
+      // Start HTTP server
+      const PORT = Number(process.env.PORT ?? 3000);
+      await new Promise<void>((resolve) => {
+        app.listen(PORT, () => {
+          logger.info(
+            `HTTP transport listening on http://localhost:${PORT}${mcpEndpoint}`,
+          );
+          resolve();
+        });
+      });
+    }
   }
 }
 

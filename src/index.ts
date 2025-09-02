@@ -4,7 +4,8 @@ import { BitbucketServer, logger } from "./server.js";
 
 config();
 const server = new BitbucketServer();
-server.run().catch((error) => {
+const mode = process.argv.includes("--http") ? "http" : "stdio";
+server.run(mode).catch((error) => {
   logger.error("Server error", error);
   process.exit(1);
 });
