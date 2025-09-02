@@ -40,12 +40,21 @@ interface PullRequestParams extends RepositoryParams {
   prId?: number;
 }
 
-interface MergeOptions {
+interface PullRequestDiffParams extends PullRequestParams {
+  contextLines?: number;
+  maxLinesPerFile?: number;
+}
+
+interface DeclinePullRequestParams extends PullRequestParams {
+  message?: string;
+}
+
+interface MergePullRequestParams extends PullRequestParams {
   message?: string;
   strategy?: "merge-commit" | "squash" | "fast-forward";
 }
 
-interface CommentOptions {
+interface AddCommentOptions extends PullRequestParams {
   text: string;
   parentId?: number;
 }
@@ -417,6 +426,7 @@ class BitbucketServer {
               contextLines: z
                 .number()
                 .optional()
+                .default(10)
                 .describe(
                   "Number of context lines to show around changes (default: 10). Higher values provide more surrounding code context.",
                 ),
@@ -800,12 +810,15 @@ class BitbucketServer {
     };
   }
 
-  async mergePullRequest(
-    params: PullRequestParams,
-    options: MergeOptions = {},
-  ) {
+  async mergePullRequest(params: MergePullRequestParams) {
     params.project = this.getProject(params.project);
-    const { project, repository, prId } = params;
+    const {
+      project,
+      repository,
+      prId,
+      message,
+      strategy = "merge-commit",
+    } = params;
 
     if (!project || !repository || !prId) {
       throw new McpError(
@@ -813,8 +826,6 @@ class BitbucketServer {
         "Project, repository, and prId are required",
       );
     }
-
-    const { message, strategy = "merge-commit" } = options;
 
     const response = await this.api.post(
       `/projects/${project}/repos/${repository}/pull-requests/${prId}/merge`,
@@ -830,9 +841,9 @@ class BitbucketServer {
     };
   }
 
-  async declinePullRequest(params: PullRequestParams, message?: string) {
+  async declinePullRequest(params: DeclinePullRequestParams) {
     params.project = this.getProject(params.project);
-    const { project, repository, prId } = params;
+    const { project, repository, prId, message } = params;
 
     if (!project || !repository || !prId) {
       throw new McpError(
@@ -854,9 +865,9 @@ class BitbucketServer {
     };
   }
 
-  async addComment(params: PullRequestParams, options: CommentOptions) {
+  async addComment(params: AddCommentOptions) {
     params.project = this.getProject(params.project);
-    const { project, repository, prId } = params;
+    const { project, repository, prId, text, parentId } = params;
 
     if (!project || !repository || !prId) {
       throw new McpError(
@@ -864,8 +875,6 @@ class BitbucketServer {
         "Project, repository, and prId are required",
       );
     }
-
-    const { text, parentId } = options;
 
     const response = await this.api.post(
       `/projects/${project}/repos/${repository}/pull-requests/${prId}/comments`,
@@ -994,13 +1003,9 @@ class BitbucketServer {
     return result;
   }
 
-  async getDiff(
-    params: PullRequestParams,
-    contextLines: number = 10,
-    maxLinesPerFile?: number,
-  ) {
+  async getDiff(params: PullRequestDiffParams) {
     params.project = this.getProject(params.project);
-    const { project, repository, prId } = params;
+    const { project, repository, prId, contextLines, maxLinesPerFile } = params;
 
     if (!project || !repository || !prId) {
       throw new McpError(

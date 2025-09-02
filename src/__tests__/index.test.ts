@@ -186,14 +186,13 @@ describe("BitbucketServer", () => {
 
       // Act
       const server = new BitbucketServer();
-      const result = await server.mergePullRequest(
-        {
-          project: input.project,
-          repository: input.repository,
-          prId: input.prId,
-        },
-        { message: input.message, strategy: input.strategy },
-      );
+      const result = await server.mergePullRequest({
+        project: input.project,
+        repository: input.repository,
+        prId: input.prId,
+        message: input.message,
+        strategy: input.strategy,
+      });
 
       // Assert
       expect(mockAxiosInstance.post).toHaveBeenCalledWith(
@@ -295,14 +294,13 @@ describe("BitbucketServer", () => {
 
       // Act
       const server = new BitbucketServer();
-      const result = await server.addComment(
-        {
-          project: input.project,
-          repository: input.repository,
-          prId: input.prId,
-        },
-        { text: input.text, parentId: input.parentId },
-      );
+      const result = await server.addComment({
+        project: input.project,
+        repository: input.repository,
+        prId: input.prId,
+        text: input.text,
+        parentId: input.parentId,
+      });
 
       // Assert
       expect(mockAxiosInstance.post).toHaveBeenCalledWith(
