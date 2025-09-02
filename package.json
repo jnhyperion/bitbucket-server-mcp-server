@@ -1,8 +1,8 @@
 {
   "name": "bitbucket-server",
   "version": "1.0.0",
-  "description": "MCP Server for Bitbucket Server PR management",
   "type": "module",
+  "description": "MCP Server for Atlassian Bitbucket data center",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "bin": {
@@ -22,9 +22,11 @@
     "inspector": "npx @modelcontextprotocol/inspector build/index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.1.1",
+    "@modelcontextprotocol/sdk": "^1.17.3",
+    "zod": "^3.24.2",
     "axios": "^1.6.5",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
